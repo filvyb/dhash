@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.9.0"
+version       = "1.0.0"
 author        = "Filip Vybihal"
 description   = "Implementation of Neal Krawetz’s dHash algorithm in Nim"
 license       = "LGPL-3.0-or-later"
