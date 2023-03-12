@@ -1,21 +1,20 @@
 import imageman
 import nint128
 
-import std/strformat
 import std/math
-
+import std/strutils
 
 proc get_img*(path: string): Image[ColorRGBU] =
   result = loadImage[ColorRGBU](path)
 
-proc get_grays(image: Image[ColorRGBU], width: int, height: int): seq[uint8] =
+proc get_grays(image: Image[ColorRGBU], width, height: int): seq[uint8] =
   var gimg = image.resizedBicubic(width, height)
   filterGreyscale(gimg)
   for pixel in gimg.data.mitems:
     result &= pixel.r
 
 
-proc dhash_row_col(image: Image[ColorRGBU], size: int): (uint64, uint64) =
+proc dhash_row_col*(image: Image[ColorRGBU], size: int): (uint64, uint64) =
   let width = size + 1
   let grays = get_grays(image, width, width)
 
@@ -44,10 +43,14 @@ proc dhash_int*(image: Image[ColorRGBU], size=8): UInt128 =
 
   result = u128(row_hash) shl (size * size) or u128(col_hash)
 
-proc format_hex*(row_hash: uint64, col_hash: uint64, size=8): string =
+proc format_as_hex*(row_hash, col_hash: uint64, size=8): string =
   if size > 8:
     stderr.writeLine("Size can't be over 8 due to size of integer")
     quit(2)
 
   var hex_length = floorDiv(size * size, 4)
-  #result = fmt"{row_hash:0{hex_length}x}{col_hash:0{hex_length}x}"
+  result = $row_hash.toHex(hex_length) & $col_hash.toHex(hex_length)
+
+proc get_num_bits_different*(hash1, hash2: UInt128): int =
+  var diff = hash1 xor hash2
+  result = toBin(diff).count('1')
