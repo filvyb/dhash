@@ -1,7 +1,7 @@
 import argparse
 import std/strutils
 import imageman
-import nint128
+import bigints
 
 import dhashpkg/dhash_lib
 
@@ -11,15 +11,19 @@ when isMainModule:
 
   var p = newParser:
     option("-s", "--size", help="width and height of dhash image size")
-    arg("filename", nargs = -1)
+    option("-f", "--format", help="hash output format, optional. Options: hex, dec Default: dec")
+    arg("filename", nargs = -1, help="name of image file to hash (or two to calculate the delta)")
 
   var size = 8
   var filenames: seq[string]
+  var format = "default"
 
   try:
     var opts = p.parse(commandLineParams())
     if opts.size != "":
       size = parseInt(opts.size)
+    if opts.format != "":
+      format = opts.format
     filenames = opts.filename
   except ShortCircuit as err:
     if err.flag == "argparse_help":
@@ -30,8 +34,18 @@ when isMainModule:
     quit(1)
 
   if filenames.len == 1:
-    echo $(dhash_int(get_img(filenames[0]), size))
+    if format == "default" or format == "dec":
+      echo $(dhash_int(get_img(filenames[0]), size))
+    elif format == "hex":
+      let rowcol = dhash_row_col(get_img(filenames[0]), size)
+      echo format_as_hex(rowcol[0], rowcol[1])
+    else:
+      stderr.writeLine("Wrong format")
+      quit(3)
   elif filenames.len == 2:
+    if format != "default":
+      stderr.writeLine("You don't use that argument here")
+      quit(3)
     let image1 = get_img(filenames[0])
     let image2 = get_img(filenames[1])
     let hash1 = dhash_int(image1, size)

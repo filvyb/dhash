@@ -2,7 +2,7 @@ import unittest
 
 import dhashpkg/dhash_lib
 
-import nint128
+import bigints
 
 test "correct dhash int":
   var o = dhash_int(get_img("testimage1.jpg"))
