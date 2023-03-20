@@ -35,9 +35,9 @@ when isMainModule:
 
   if filenames.len == 1:
     if format == "default" or format == "dec":
-      echo $(dhash_int(get_img(filenames[0]), size))
+      echo $(dhash_int(filenames[0], size))
     elif format == "hex":
-      let rowcol = dhash_row_col(get_img(filenames[0]), size)
+      let rowcol = dhash_row_col(filenames[0], size)
       echo format_as_hex(rowcol[0], rowcol[1])
     else:
       stderr.writeLine("Wrong format")
@@ -46,10 +46,8 @@ when isMainModule:
     if format != "default":
       stderr.writeLine("You don't use that argument here")
       quit(3)
-    let image1 = get_img(filenames[0])
-    let image2 = get_img(filenames[1])
-    let hash1 = dhash_int(image1, size)
-    let hash2 = dhash_int(image2, size)
+    let hash1 = dhash_int(filenames[0], size)
+    let hash2 = dhash_int(filenames[1], size)
     let diff_count = get_num_bits_different(hash1, hash2)
     echo diff_count, " bits differ"
   else:

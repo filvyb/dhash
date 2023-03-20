@@ -17,7 +17,7 @@ proc get_grays(image: Image[ColorRGBU], width, height: int): seq[uint8] =
 
 ## Calculates row and column difference hash for given image and returns
 ## hashes as (row_hash, col_hash) where each value is a size*size bit integer
-proc dhash_row_col*(image: Image[ColorRGBU], size: int): (BigInt, BigInt) =
+proc dhash_row_col*(image: Image[ColorRGBU], size=8): (BigInt, BigInt) =
   let width = size + 1
   let grays = get_grays(image, width, width)
 
@@ -34,6 +34,9 @@ proc dhash_row_col*(image: Image[ColorRGBU], size: int): (BigInt, BigInt) =
   
   result = (row_hash, col_hash)
 
+proc dhash_row_col*(image_path: string, size=8): (BigInt, BigInt) =
+  result = dhash_row_col(get_img(image_path), size)
+
 ## Calculates row and column difference hash for given image and returns
 ## hashes combined as a single 2*size*size bit integer
 proc dhash_int*(image: Image[ColorRGBU], size=8): BigInt =
@@ -43,12 +46,16 @@ proc dhash_int*(image: Image[ColorRGBU], size=8): BigInt =
 
   result = initBigInt(row_hash) shl (size * size) or initBigInt(col_hash)
 
+## dhash_int, but loads image from a given path
+proc dhash_int*(image_path: string, size=8): BigInt =
+  result = dhash_int(get_img(image_path), size)
+
 ## Returns formatted dhash integers as hex string
 proc format_as_hex*(row_hash, col_hash: BigInt): string =
   #var hex_length = floorDiv(size * size, 4)
   result = $row_hash.toString(16) & $col_hash.toString(16)
 
-## Returns number of bits different between two given hashes
+## Returns number of bits different between two BigInt hashes
 proc get_num_bits_different*(hash1, hash2: BigInt): int =
   var diff = hash1 xor hash2
   result = toString(diff, 2).count('1')
