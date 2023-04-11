@@ -2,6 +2,7 @@ import imageman
 import bigints
 
 import std/strutils
+import options
 
 ## Loads picture from a path and returns it
 proc get_img*(path: string): Image[ColorRGBU] =
@@ -9,17 +10,26 @@ proc get_img*(path: string): Image[ColorRGBU] =
 
 ## Converts image to grayscale, downsizes it to width*height, and returns list
 ## of it's grayscale integer pixel values
-proc get_grays(image: Image[ColorRGBU], width, height: int): seq[uint8] =
+proc get_grays*(image: Image[ColorRGBU], width, height: int): seq[uint8] =
   var gimg = image.resizedBicubic(width, height)
   filterGreyscale(gimg)
   for pixel in gimg.data.mitems:
     result &= pixel.r
 
+## get_grays, but loads image from a given path
+proc get_grays*(image: string, width, height: int): seq[uint8] =
+  result = get_grays(get_img(image), width, height)
+
 ## Calculates row and column difference hash for given image and returns
 ## hashes as (row_hash, col_hash) where each value is a size*size bit integer
-proc dhash_row_col*(image: Image[ColorRGBU], size=8): (BigInt, BigInt) =
+proc dhash_row_col*(image: Image[ColorRGBU], size=8, cgrays = none seq[uint8]): (BigInt, BigInt) =
   let width = size + 1
-  let grays = get_grays(image, width, width)
+
+  var grays: seq[uint8]
+  if cgrays.isNone:
+    grays = get_grays(image, width, width)
+  else:
+    grays = cgrays.get()
 
   var row_hash = initBigInt(0)
   var col_hash = initBigInt(0)
